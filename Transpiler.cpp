@@ -80,7 +80,24 @@ void printParser()
         }
         else if (setParserData[i] == "scanf()")
         {
-            string_const = setParserData[i].substr(0, 6) + '"' + variableMapper.find(setParserData[i+1])->second + '"' + "," + +"&" + setParserData[i + 1]  + ')' + ';';
+            setParserData[i+1]+=" ";
+            
+            std::string formatSpecifiers = "", varNames = "", varName = "";
+            for(int j=0;j<setParserData[i+1].size();j++)
+            {
+                if(setParserData[i+1][j] != ' ')
+                {
+                    varName += setParserData[i+1][j];
+                }
+                else
+                {
+                    formatSpecifiers+=variableMapper.find(varName)->second + " ";
+                    varName = "&" + varName;
+                    varNames+= ((varNames == "")? "":",") + varName;
+                    varName = "";
+                }
+            }
+            string_const = setParserData[i].substr(0, 6) + '"' + formatSpecifiers.substr(0,formatSpecifiers.length()-1) + '"' + "," + varNames  + ')' + ';';
             setParserData[i] = string_const;
             setParserData.erase((setParserData.begin()+ i + 1));
         }
@@ -161,10 +178,10 @@ void Parser(std::string getData)
                 getData = SpaceDebug(getData)+" ";
                 std::vector<std::string> tmp;
                 std::string stf = "";
-                std::cout<<getData<<"\n";
+                
                 for (int i = 0; i < getData.length(); i++)
                 {
-                    if (getData[i] != ' ')
+                    if (getData[i] != ' ' && getData[i] != ',')
                     {
                         stf = stf + getData[i];
                     }
@@ -175,13 +192,17 @@ void Parser(std::string getData)
                             stf = "";
                     }
                 }
-                for(auto it: tmp){
-                    std::cout<<it<<"\n";
-                }
                 if (tmp[0] == "take")
                 {
+                    std::string tmpStr = "";
                     setParserData.push_back(dataMapper.find(tmp[0])->second);
-                    setParserData.push_back(tmp[1]);
+                    for(int it=1;it<tmp.size();it++)
+                    {
+                        tmpStr += ((tmpStr == "")? "": " ") + tmp[it];
+                    }
+                    setParserData.push_back(tmpStr);
+                    
+                    
                 }
             }
             else {
