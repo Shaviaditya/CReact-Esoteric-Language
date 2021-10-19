@@ -1,7 +1,9 @@
 ## Step 2: Working with Data Types and Input/Output
 
+### Declaration
+
 First of all we shall declare some variables in our map and their types equivalent in C language.
-```
+```c++
     in => int => %d
     ch => char => %c
 
@@ -9,9 +11,27 @@ First of all we shall declare some variables in our map and their types equivale
 For CReact the above syntax shall be used to map in 4 pairs of values in our dictionary.
 Now any variable can be declared in a syntax such that it is easily recognisable by the transpiler and easy to work with as well, for CReact we follow a simple pattern of self-closing tags that is :
 
+```jsx
+    <in var1 = 9, var2 = 78/>
 ```
-    <in var1 = 9,>
+Here we shall use the self closing property to separate them and just take in the portion used for initializing, now for just parsing this statement we'll convert `in to int` and substring the exact next sentence to get the declaration statement.
+
+Whereas for printing the purpose extends to a higehr level as we have to map the variable with its exact data-type like for instance :
+```jsx
+    <in var1=90/>
+    This should be mapped as {var1,%d}
 ```
+
+Likewise other variables do that whenever they are invoked while printing it can be accessed.
+
+Now to work with tokenizing the values, we have to implement a function that can store all the strings inside this declaration in a container and within this container we have to implement a method to extract the variable names.
+
+Print statement can be written in CReact as : `<log> ${var1} </log>`
+
+This shall allow us to differentiate with the normal string and also just call for the respective datatype of var1 and insert that specifier in the statement so that in C it transpiles to `printf("%d",var1)`
+
+### User Input : 
+
 Taking user input is a very basic task that is expected of our esolang. For convenience let us assume that we have already declared a variable of integer type (we will see how to do that later in this section).
 
 To understand how to achieve this, our first step is to decide what our user input syntax is going to look like. In CReact, the syntax that we have defined is as follows :
