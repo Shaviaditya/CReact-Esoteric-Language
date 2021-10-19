@@ -104,9 +104,6 @@ void IOparser(std::string getData){
             variableMapper.insert({tokenContainer[i-1],dataMapper.find((dataMapper.find(tokenContainer[0])->second))->second});
         }
     }
-    for(auto it: variableMapper){
-        std::cout<<it.first<<" "<<it.first.length()<<"\n";
-    }
 }
 void Parser(std::string getData)
 {
