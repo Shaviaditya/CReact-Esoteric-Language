@@ -88,18 +88,24 @@ void IOparser(std::string getData){
     getData = arrangeDebugger(getData);
     std::vector<std::string> tokenContainer;
     std::string ins_string="";
+    std::cout<<getData<<"\n";
     for(int i=0;i<getData.length();i++){
         if(getData[i]!=' '){
             ins_string+=getData[i];
         } else {
-            tokenContainer.push_back(ins_string);
-            ins_string="";
+            if(ins_string.length()!=0){
+                tokenContainer.push_back(ins_string);
+                ins_string="";
+            }
         }
     }
     for(int i=1;i<tokenContainer.size();i++){
         if(tokenContainer[i]=="=" || tokenContainer[i]==","){
             variableMapper.insert({tokenContainer[i-1],dataMapper.find((dataMapper.find(tokenContainer[0])->second))->second});
         }
+    }
+    for(auto it: variableMapper){
+        std::cout<<it.first<<" "<<it.first.length()<<"\n";
     }
 }
 void Parser(std::string getData)
