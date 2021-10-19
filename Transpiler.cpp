@@ -215,6 +215,25 @@ void Parser(std::string getData)
                 IOparser(getData + ",");
             }
         }
+        else if (getData[1] == '%')
+        {
+            
+            std::vector<std::string> tmp;
+            std::string stf = "";
+            for (int i = 2; i < getData.length() - 1; i++)
+            {
+                if (getData[i] != '%')
+                {
+                    stf = stf + getData[i];
+                }
+                else
+                {
+                    break;
+                }
+            }
+            stf = stf + ';';
+            setParserData.push_back(stf);
+        }
         else if (getData[1] != '/')
         {
             std::string getTag = stripBraces(getData);
@@ -249,6 +268,63 @@ void Parser(std::string getData)
             setParserData[setParserData.size() - 1] += (" " + getData);
     }
 }
+
+std::string addSpaces(std::string stf, int freq)
+{
+    for (int i = 0; i < freq; i++)
+    {
+        stf = "\t" + stf;
+    }
+    return stf;
+}
+
+void conditionalBuilder(std::string parse)
+{
+
+    int cnt = 0, cnt2 = 0;
+    for (int i = 0; i < parse.length(); i++)
+    {
+        if (parse[i] == '?')
+        {
+            cnt++;
+        }
+        if (parse[i] == 'i' || parse[i] == 'e')
+        {
+            break;
+        }
+        cnt2++;
+    }
+    if (parse[parse.length() - 1] != '>')
+    {
+        parse = parse.substr(cnt2, parse.length() - cnt2);
+        if (parse.substr(0, 2) == "if")
+        {
+            parse = parse + "{";
+            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse);
+        }
+        else if (parse.substr(0, 4) == "elif")
+        {
+            std::string sf = "else if";
+            parse = sf + parse.substr(4, parse.length() - 4) + "{";
+            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse);
+        }
+        else
+        {
+            parse = "else {";
+            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse);
+        }
+    }
+    else
+    {
+        std::string stf = "}";
+        stf = addSpaces(stf, cnt);
+        setParserData.push_back(stf);
+    }
+}
+
 int main(int argc, char const *argv[])
 //int main()
 {
@@ -258,7 +334,15 @@ int main(int argc, char const *argv[])
     //std::ifstream readData("input.html");
     while (getline(readData, getSyntax))
     {
-        Parser(getSyntax);
+         getSyntax = SpaceDebug(getSyntax);
+
+        if (getSyntax.substr(0, 2) == "<?" || getSyntax.substr(getSyntax.length() - 2, 2) == "?>")
+        {
+
+            conditionalBuilder(getSyntax);
+        }
+        else
+            Parser(getSyntax);
     }
     printParser();
     writeCode();
