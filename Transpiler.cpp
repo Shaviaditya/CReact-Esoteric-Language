@@ -49,7 +49,31 @@ void printParser()
     {
         if (setParserData[i] == "printf()")
         {
-            string_const = setParserData[i].substr(0, 7) + '"' + setParserData[i + 1] + '"' + ")" + setParserData[i + 2];
+            int pos;
+            std::string formatSpecifiers = "", varNames = "",varName="";
+            for (int j = 0; j < setParserData[i + 1].size(); j++)
+            { 
+                if(setParserData[i+1].substr(j,2) == "${")   
+                {
+                    pos = setParserData[i+1].substr(j).find('}') + j;
+                    varName = setParserData[i + 1].substr(j + 2, pos - (j + 2));
+                    if (variableMapper.find(varName) != variableMapper.end())
+                    {
+                        formatSpecifiers+=variableMapper.find(varName)->second;
+                        varNames += ((varNames == "")? "" : ",") + varName;
+                    }
+                    else
+                    {
+                        formatSpecifiers+=setParserData[i + 1].substr(j, pos - j + 1);
+                    }
+                    j=pos;
+                }
+                else
+                {
+                    formatSpecifiers += setParserData[i+1][j];
+                }
+            }
+            string_const = setParserData[i].substr(0, 7) + '"' + formatSpecifiers + '"' + ((varNames == "")?"":",") + varNames + ")" + setParserData[i + 2];
             setParserData[i] = string_const;
             setParserData.erase(std::next(setParserData.begin(), i + 1), std::next(setParserData.begin(), i + 3));
         }
@@ -88,7 +112,6 @@ void IOparser(std::string getData){
     getData = arrangeDebugger(getData);
     std::vector<std::string> tokenContainer;
     std::string ins_string="";
-    std::cout<<getData<<"\n";
     for(int i=0;i<getData.length();i++){
         if(getData[i]!=' '){
             ins_string+=getData[i];
