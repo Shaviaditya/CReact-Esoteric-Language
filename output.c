@@ -2,6 +2,8 @@
 
 void main(){
 
-char var3 ='a';
-printf("hello %c \n",var3);
+int var1;
+char hf='p',kl='r';
+scanf("%d",&var1);
+printf("This is a value %d",var1);
 }

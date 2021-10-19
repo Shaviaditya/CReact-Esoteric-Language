@@ -1,6 +1,6 @@
 #!/bin/bash
 
-make
-./Transpiler $1
+mingw32-make.exe
+./transpiler1 $1
 gcc output.c -o output
 ./output
