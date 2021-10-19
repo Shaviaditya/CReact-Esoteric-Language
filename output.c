@@ -2,5 +2,6 @@
 
 void main(){
 
-printf("Hello World");
+int var1,var2;
+char var3='a',var4;
 }
