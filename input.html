@@ -1,8 +1,10 @@
 <htpl>
   <main> 
-    <in var1/>
-    <ch hf='p',kl='r'/>
-    <take var1,kl //>
-    <log>This is a value ${var1} ${hf} ${kl}</log>
+    <in var1,i/>
+    <log>Enter an value \n</log>
+    <take var1 //>
+    <# f(i=0,i<=var1,i++)
+        <log>${i}\n</log>
+    #>
   </main>
 </htpl>

@@ -80,26 +80,26 @@ void printParser()
         }
         else if (setParserData[i] == "scanf()")
         {
-            setParserData[i+1]+=" ";
-            
+            setParserData[i + 1] += " ";
+
             std::string formatSpecifiers = "", varNames = "", varName = "";
-            for(int j=0;j<setParserData[i+1].size();j++)
+            for (int j = 0; j < setParserData[i + 1].size(); j++)
             {
-                if(setParserData[i+1][j] != ' ')
+                if (setParserData[i + 1][j] != ' ')
                 {
-                    varName += setParserData[i+1][j];
+                    varName += setParserData[i + 1][j];
                 }
                 else
                 {
-                    formatSpecifiers+=variableMapper.find(varName)->second + " ";
+                    formatSpecifiers += variableMapper.find(varName)->second + " ";
                     varName = "&" + varName;
-                    varNames+= ((varNames == "")? "":",") + varName;
+                    varNames += ((varNames == "") ? "" : ",") + varName;
                     varName = "";
                 }
             }
-            string_const = setParserData[i].substr(0, 6) + '"' + formatSpecifiers.substr(0,formatSpecifiers.length()-1) + '"' + "," + varNames  + ')' + ';';
+            string_const = setParserData[i].substr(0, 6) + '"' + formatSpecifiers.substr(0, formatSpecifiers.length() - 1) + '"' + "," + varNames + ')' + ';';
             setParserData[i] = string_const;
-            setParserData.erase((setParserData.begin()+ i + 1));
+            setParserData.erase((setParserData.begin() + i + 1));
         }
     }
 }
@@ -175,10 +175,10 @@ void Parser(std::string getData)
             if (getData[getData.length() - 3] == '/')
             {
                 getData = getData.substr(1, getData.length() - 4);
-                getData = SpaceDebug(getData)+" ";
+                getData = SpaceDebug(getData) + " ";
                 std::vector<std::string> tmp;
                 std::string stf = "";
-                
+
                 for (int i = 0; i < getData.length(); i++)
                 {
                     if (getData[i] != ' ' && getData[i] != ',')
@@ -187,25 +187,24 @@ void Parser(std::string getData)
                     }
                     else
                     {
-                        if(stf.length()!=0)
+                        if (stf.length() != 0)
                             tmp.push_back(stf);
-                            stf = "";
+                        stf = "";
                     }
                 }
                 if (tmp[0] == "take")
                 {
                     std::string tmpStr = "";
                     setParserData.push_back(dataMapper.find(tmp[0])->second);
-                    for(int it=1;it<tmp.size();it++)
+                    for (int it = 1; it < tmp.size(); it++)
                     {
-                        tmpStr += ((tmpStr == "")? "": " ") + tmp[it];
+                        tmpStr += ((tmpStr == "") ? "" : " ") + tmp[it];
                     }
                     setParserData.push_back(tmpStr);
-                    
-                    
                 }
             }
-            else {
+            else
+            {
                 /*This defines that we are only working with statements that have a self-closing tag to work with
                     Examples : <in val = 1/> or <in var1 = 3, var2 = 4/>
                 */
@@ -217,7 +216,7 @@ void Parser(std::string getData)
         }
         else if (getData[1] == '%')
         {
-            
+
             std::vector<std::string> tmp;
             std::string stf = "";
             for (int i = 2; i < getData.length() - 1; i++)
@@ -324,25 +323,75 @@ void conditionalBuilder(std::string parse)
         setParserData.push_back(stf);
     }
 }
-
-int main(int argc, char const *argv[])
-//int main()
+void iteratorBuilder(std::string parse)
+{
+    int cnt = 0, cnt2 = 0;
+    for (int i = 0; i < parse.length(); i++)
+    {
+        if (parse[i] == '#')
+        {
+            cnt++;
+        }
+        if (parse[i] == 'f' || parse[i] == 'w')
+        {
+            break;
+        }
+        cnt2++;
+    }
+    if (parse[parse.length() - 1] != '>')
+    {
+        parse = parse.substr(cnt2, parse.length() - cnt2);
+        if (parse[0] == 'f')
+        {
+            for (int i = 1; i < parse.length(); i++)
+            {
+                if (parse[i] == ',')
+                {
+                    parse[i] = ';';
+                }
+            }
+            parse = "for" + parse.substr(1, parse.length() - 1) + "{";
+            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse);
+        }
+        else if (parse[0] == 'w')
+        {
+            parse = "while" + parse.substr(1, parse.length() - 1) + "{";
+            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse);
+        }
+    }
+    else
+    {
+        std::string stf = "}";
+        stf = addSpaces(stf, cnt);
+        setParserData.push_back(stf);
+    }
+}
+// int main(int argc, char const *argv[])
+int main()
 {
     refDataset();
     std::string getSyntax;
-    std::ifstream readData(argv[1]);
-    //std::ifstream readData("input.html");
+    // std::ifstream readData(argv[1]);
+    std::ifstream readData("input.html");
     while (getline(readData, getSyntax))
     {
-         getSyntax = SpaceDebug(getSyntax);
-
+        getSyntax = SpaceDebug(getSyntax);
         if (getSyntax.substr(0, 2) == "<?" || getSyntax.substr(getSyntax.length() - 2, 2) == "?>")
         {
-
             conditionalBuilder(getSyntax);
         }
-        else
+        else if (getSyntax.substr(0, 2) == "<#" || getSyntax.substr(getSyntax.length() - 2, 2) == "#>")
+        {
+            iteratorBuilder(getSyntax);
+        }
+        else {
             Parser(getSyntax);
+        }
+    }
+    for(auto it: variableMapper){
+        std::cout<<it.first<<" "<<it.second<<"\n";
     }
     printParser();
     writeCode();

@@ -2,8 +2,10 @@
 
 void main(){
 
-int var1;
-char hf='p',kl='r';
+int var1,i;
+printf("Enter an value \n");
 scanf("%d",&var1);
-printf("This is a value %d",var1);
+	for(i=0;i<=var1;i++){
+printf("%d\n",i);
+	}
 }
