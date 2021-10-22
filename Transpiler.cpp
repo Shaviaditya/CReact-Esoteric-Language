@@ -43,6 +43,30 @@ void writeCode()
         writeFile << setParserData[i] << "\n";
     }
 }
+std::vector<std::string> fxEval(std::string st){
+    std::string newgetData;
+    std::vector<std::string> store;
+    for(int i=0;i<st.length();i++){
+        if(st[i]=='+' || st[i]=='-' || st[i]=='*' || st[i]=='/' || st[i]=='%' || st[i]=='^'){
+            newgetData+=' ';
+            newgetData+=st[i];
+            newgetData+=' ';
+        } else {
+            newgetData+=st[i];
+        }
+    }
+    newgetData+=' ';
+    std::string helper_st="";
+    for(int i=0;i<newgetData.length();i++){
+        if(newgetData[i]!=' '){
+            helper_st+=newgetData[i];
+        } else {
+            store.push_back(helper_st);
+            helper_st = "";
+        }
+    }
+    return store;
+}
 void printParser()
 {
     std::string string_const = "";
@@ -52,18 +76,29 @@ void printParser()
         {
             int pos;
             std::string formatSpecifiers = "", varNames = "", varName = "";
+            std::vector<std::string> expressEval;
             for (int j = 0; j < setParserData[i + 1].size(); j++)
             {
                 if (setParserData[i + 1].substr(j, 2) == "${")
                 {
                     pos = setParserData[i + 1].substr(j).find('}') + j;
                     varName = setParserData[i + 1].substr(j + 2, pos - (j + 2));
-                    if (variableMapper.find(varName) != variableMapper.end())
-                    {
-                        formatSpecifiers += variableMapper.find(varName)->second;
-                        varNames += ((varNames == "") ? "" : ",") + varName;
+                    expressEval = fxEval(varName);
+                    int check = 1;
+                    for(int i=0;i<expressEval.size();i++){
+                        if(variableMapper.find(expressEval[i]) != variableMapper.end()){
+                            formatSpecifiers += variableMapper.find(expressEval[i])->second;
+                            varNames += ((varNames == "") ? "" : ",") + varName;
+                            check = 0;
+                            break;
+                        }
                     }
-                    else
+                    // if (variableMapper.find(varName) != variableMapper.end())
+                    // {
+                    //     formatSpecifiers += variableMapper.find(varName)->second;
+                    //     varNames += ((varNames == "") ? "" : ",") + varName;
+                    // }
+                    if(check==1)
                     {
                         formatSpecifiers += setParserData[i + 1].substr(j, pos - j + 1);
                     }
@@ -279,68 +314,39 @@ std::string addSpaces(std::string stf, int freq)
 
 void conditionalBuilder(std::string parse)
 {
-
-    int cnt = 0, cnt2 = 0;
-    for (int i = 0; i < parse.length(); i++)
-    {
-        if (parse[i] == '?')
-        {
-            cnt++;
-        }
-        if (parse[i] == 'i' || parse[i] == 'e')
-        {
-            break;
-        }
-        cnt2++;
-    }
     if (parse[parse.length() - 1] != '>')
     {
-        parse = parse.substr(cnt2, parse.length() - cnt2);
+        parse = parse.substr(2,parse.length()-2);
+        parse = SpaceDebug(parse);
         if (parse.substr(0, 2) == "if")
         {
             parse = parse + "{";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
         else if (parse.substr(0, 4) == "elif")
         {
             std::string sf = "else if";
             parse = sf + parse.substr(4, parse.length() - 4) + "{";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
         else
         {
             parse = "else {";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
     }
     else
     {
         std::string stf = "}";
-        stf = addSpaces(stf, cnt);
         setParserData.push_back(stf);
     }
 }
-void iteratorBuilder(std::string parse)
+void iteratorBuilders(std::string parse)
 {
-    int cnt = 0, cnt2 = 0;
-    for (int i = 0; i < parse.length(); i++)
-    {
-        if (parse[i] == '#')
-        {
-            cnt++;
-        }
-        if (parse[i] == 'f' || parse[i] == 'w')
-        {
-            break;
-        }
-        cnt2++;
-    }
     if (parse[parse.length() - 1] != '>')
     {
-        parse = parse.substr(cnt2, parse.length() - cnt2);
+        parse = parse.substr(2,parse.length()-2);
+        parse = SpaceDebug(parse);
         if (parse[0] == 'f')
         {
             for (int i = 1; i < parse.length(); i++)
@@ -351,30 +357,27 @@ void iteratorBuilder(std::string parse)
                 }
             }
             parse = "for" + parse.substr(1, parse.length() - 1) + "{";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
         else if (parse[0] == 'w')
         {
             parse = "while" + parse.substr(1, parse.length() - 1) + "{";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
     }
     else
     {
         std::string stf = "}";
-        stf = addSpaces(stf, cnt);
         setParserData.push_back(stf);
     }
 }
-// int main(int argc, char const *argv[])
-int main()
+int main(int argc, char const *argv[])
+// int main()
 {
     refDataset();
     std::string getSyntax;
-    // std::ifstream readData(argv[1]);
-    std::ifstream readData("input.html");
+    std::ifstream readData(argv[1]);
+    // std::ifstream readData("input.html");
     while (getline(readData, getSyntax))
     {
         getSyntax = SpaceDebug(getSyntax);
@@ -384,14 +387,11 @@ int main()
         }
         else if (getSyntax.substr(0, 2) == "<#" || getSyntax.substr(getSyntax.length() - 2, 2) == "#>")
         {
-            iteratorBuilder(getSyntax);
+            iteratorBuilders(getSyntax);
         }
         else {
             Parser(getSyntax);
         }
-    }
-    for(auto it: variableMapper){
-        std::cout<<it.first<<" "<<it.second<<"\n";
     }
     printParser();
     writeCode();

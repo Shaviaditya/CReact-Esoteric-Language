@@ -1,10 +1,11 @@
 <htpl>
   <main> 
-    <in var1,i/>
+    <in var1,i=0/>
     <log>Enter an value \n</log>
     <take var1 //>
-    <# f(i=0,i<=var1,i++)
-        <log>${i}\n</log>
+    <# w(i<var1)
+      <log>Fizz\n</log>
+      <%i++%>
     #>
   </main>
 </htpl>

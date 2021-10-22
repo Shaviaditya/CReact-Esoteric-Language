@@ -2,10 +2,11 @@
 
 void main(){
 
-int var1,i;
+int var1,i=0;
 printf("Enter an value \n");
 scanf("%d",&var1);
-	for(i=0;i<=var1;i++){
-printf("%d\n",i);
-	}
+while(i<var1){
+printf("Fizz\n");
+i++;
+}
 }
