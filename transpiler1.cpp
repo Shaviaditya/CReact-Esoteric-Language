@@ -6,6 +6,7 @@
 std::unordered_map<std::string, std::string> dataMapper;
 std::unordered_map<std::string, std::string> variableMapper;
 std::vector<std::string> setParserData;
+std::vector<std::string> functionHeader;
 void refDataset()
 {
     dataMapper.insert({"htpl", "#include<stdio.h>\n"});
@@ -41,7 +42,47 @@ void writeCode()
     for (int i = 0; i < setParserData.size() - 1; i++)
     {
         writeFile << setParserData[i] << "\n";
+        if (i == 0)
+        {
+            for (int k = 0; k < functionHeader.size(); k++)
+            {
+                writeFile << functionHeader[k] << "\n";
+            }
+        }
     }
+}
+std::vector<std::string> fxEval(std::string st)
+{
+    std::vector<std::string> store;
+    std::string newgetData = "";
+    for (int i = 0; i < st.length(); i++)
+    {
+        if (st[i] == '+' || st[i] == '-' || st[i] == '*' || st[i] == '/' || st[i] == '%' || st[i] == '^')
+        {
+            newgetData += ' ';
+            newgetData += st[i];
+            newgetData += ' ';
+        }
+        else
+        {
+            newgetData += st[i];
+        }
+    }
+    newgetData += ' ';
+    std::string helper_st = "";
+    for (int i = 0; i < newgetData.length(); i++)
+    {
+        if (newgetData[i] != ' ')
+        {
+            helper_st += newgetData[i];
+        }
+        else
+        {
+            store.push_back(helper_st);
+            helper_st = "";
+        }
+    }
+    return store;
 }
 void printParser()
 {
@@ -52,19 +93,28 @@ void printParser()
         {
             int pos;
             std::string formatSpecifiers = "", varNames = "", varName = "";
+            std::vector<std::string> expressEval;
             for (int j = 0; j < setParserData[i + 1].size(); j++)
             {
                 if (setParserData[i + 1].substr(j, 2) == "${")
                 {
                     pos = setParserData[i + 1].substr(j).find('}') + j;
                     varName = setParserData[i + 1].substr(j + 2, pos - (j + 2));
-                    if (variableMapper.find(varName) != variableMapper.end())
+                    expressEval = fxEval(varName);
+                    int check = 1;
+                    for (int k = 0; k < expressEval.size(); i++)
                     {
-                        formatSpecifiers += variableMapper.find(varName)->second;
-                        varNames += ((varNames == "") ? "" : ",") + varName;
+                        if (variableMapper.find(expressEval[k]) != variableMapper.end())
+                        {
+                            formatSpecifiers += variableMapper.find(expressEval[k])->second;
+                            varNames += ((varNames == "") ? "" : ",") + varName;
+                            check = 0;
+                            break;
+                        }
                     }
-                    else
+                    if (check == 1)
                     {
+                        // Parses anything to string
                         formatSpecifiers += setParserData[i + 1].substr(j, pos - j + 1);
                     }
                     j = pos;
@@ -80,30 +130,30 @@ void printParser()
         }
         else if (setParserData[i] == "scanf()")
         {
-            setParserData[i+1]+=" ";
-            
+            setParserData[i + 1] += " ";
+
             std::string formatSpecifiers = "", varNames = "", varName = "";
-            for(int j=0;j<setParserData[i+1].size();j++)
+            for (int j = 0; j < setParserData[i + 1].size(); j++)
             {
-                if(setParserData[i+1][j] != ' ')
+                if (setParserData[i + 1][j] != ' ')
                 {
-                    varName += setParserData[i+1][j];
+                    varName += setParserData[i + 1][j];
                 }
                 else
                 {
-                    formatSpecifiers+=variableMapper.find(varName)->second + " ";
+                    formatSpecifiers += variableMapper.find(varName)->second + " ";
                     varName = "&" + varName;
-                    varNames+= ((varNames == "")? "":",") + varName;
+                    varNames += ((varNames == "") ? "" : ",") + varName;
                     varName = "";
                 }
             }
-            string_const = setParserData[i].substr(0, 6) + '"' + formatSpecifiers.substr(0,formatSpecifiers.length()-1) + '"' + "," + varNames  + ')' + ';';
+            string_const = setParserData[i].substr(0, 6) + '"' + formatSpecifiers.substr(0, formatSpecifiers.length() - 1) + '"' + "," + varNames + ')' + ';';
             setParserData[i] = string_const;
-            setParserData.erase((setParserData.begin()+ i + 1));
+            setParserData.erase((setParserData.begin() + i + 1));
         }
     }
 }
-//Modifying Space Removal Approach
+// Modifying Space Removal Approach
 std::string SpaceDebug(std::string getData)
 {
     // A 2-pointer approach to remove spaces from both ends inside a tag.
@@ -117,7 +167,7 @@ std::string SpaceDebug(std::string getData)
     }
     return getData.substr(ptr1, ptr2 - ptr1 + 1);
 }
-//Getting the arrangement of symbols like '=' or ',' so as to put them in a mapper corectly
+// Getting the arrangement of symbols like '=' or ',' so as to put them in a mapper corectly
 std::string arrangeDebugger(std::string getData)
 {
     std::string newGetData = "";
@@ -172,13 +222,27 @@ void Parser(std::string getData)
     {
         if (getData[getData.length() - 1] == '>' && getData[getData.length() - 2] == '/')
         {
-            if (getData[getData.length() - 3] == '/')
+            if (getData.find('f') != std::string::npos && getData[getData.find('f') + 1] == 'x')
+            {
+                getData = getData.substr(1, getData.length() - 3);
+                getData = SpaceDebug(getData);
+                std::string ins_string = getData.substr(3, getData.length() - 3) + ";";
+                setParserData.push_back(ins_string);
+            }
+            else if (getData.find('t') != std::string::npos && getData.substr(getData.find('t'), 5) == "throw")
+            {
+                getData = getData.substr(1, getData.length() - 3);
+                getData = SpaceDebug(getData);
+                std::string ins_string = "return " + getData.substr(6, getData.length() - 6) + ";";
+                setParserData.push_back(ins_string);
+            }
+            else if (getData[getData.length() - 3] == '/')
             {
                 getData = getData.substr(1, getData.length() - 4);
-                getData = SpaceDebug(getData)+" ";
+                getData = SpaceDebug(getData) + " ";
                 std::vector<std::string> tmp;
                 std::string stf = "";
-                
+
                 for (int i = 0; i < getData.length(); i++)
                 {
                     if (getData[i] != ' ' && getData[i] != ',')
@@ -187,25 +251,24 @@ void Parser(std::string getData)
                     }
                     else
                     {
-                        if(stf.length()!=0)
+                        if (stf.length() != 0)
                             tmp.push_back(stf);
-                            stf = "";
+                        stf = "";
                     }
                 }
                 if (tmp[0] == "take")
                 {
                     std::string tmpStr = "";
                     setParserData.push_back(dataMapper.find(tmp[0])->second);
-                    for(int it=1;it<tmp.size();it++)
+                    for (int it = 1; it < tmp.size(); it++)
                     {
-                        tmpStr += ((tmpStr == "")? "": " ") + tmp[it];
+                        tmpStr += ((tmpStr == "") ? "" : " ") + tmp[it];
                     }
                     setParserData.push_back(tmpStr);
-                    
-                    
                 }
             }
-            else {
+            else
+            {
                 /*This defines that we are only working with statements that have a self-closing tag to work with
                     Examples : <in val = 1/> or <in var1 = 3, var2 = 4/>
                 */
@@ -215,9 +278,46 @@ void Parser(std::string getData)
                 IOparser(getData + ",");
             }
         }
+        else if (getData.find('f') != std::string::npos && getData[getData.find('f') + 1] == 'x')
+        {
+            getData = getData.substr(1, getData.length() - 2);
+            getData = SpaceDebug(getData);
+            std::string string_builder = "";
+            for (int i = 0; i < getData.length(); i++)
+            {
+                if (getData[i] == '(' || getData[i] == ')' || getData[i] == ',')
+                {
+                    string_builder = string_builder + ' ' + getData[i] + ' ';
+                }
+                else
+                {
+                    string_builder += getData[i];
+                }
+            }
+            getData = string_builder;
+            string_builder = "";
+            std::string stf="";
+            for(int i=0;i<getData.length();i++){
+                if(getData[i]!=' '){
+                    string_builder+=getData[i];
+                } else {
+                    if(string_builder=="in" || string_builder=="ch"){
+                        stf+=dataMapper.find(string_builder)->second + ' ';
+                    } else if(string_builder=="void"){
+                        stf+=string_builder+' ';
+                    } else {
+                        stf+=string_builder;
+                    }
+                    string_builder="";
+                }
+            }
+            functionHeader.push_back(stf.substr(2,stf.length()-2)+";");
+            stf += "{";
+            setParserData.push_back(stf.substr(2,stf.length()-2));
+        }
         else if (getData[1] == '%')
         {
-            
+
             std::vector<std::string> tmp;
             std::string stf = "";
             for (int i = 2; i < getData.length() - 1; i++)
@@ -277,61 +377,64 @@ std::string addSpaces(std::string stf, int freq)
     }
     return stf;
 }
-
 void conditionalBuilder(std::string parse)
 {
-
-    int cnt = 0, cnt2 = 0;
-    for (int i = 0; i < parse.length(); i++)
-    {
-        if (parse[i] == '?')
-        {
-            cnt++;
-        }
-        if (parse[i] == 'i' || parse[i] == 'e')
-        {
-            break;
-        }
-        cnt2++;
-    }
     if (parse[parse.length() - 1] != '>')
     {
-        parse = parse.substr(cnt2, parse.length() - cnt2);
-        if (parse.substr(0, 2) == "if")
-        {
-            parse = parse + "{";
-            parse = addSpaces(parse, cnt);
-            setParserData.push_back(parse);
-        }
-        else if (parse.substr(0, 4) == "elif")
+        parse = parse.substr(2, parse.length() - 2);
+        parse = SpaceDebug(parse);
+        if (parse.substr(0.4) == "elif")
         {
             std::string sf = "else if";
             parse = sf + parse.substr(4, parse.length() - 4) + "{";
-            parse = addSpaces(parse, cnt);
             setParserData.push_back(parse);
         }
         else
         {
-            parse = "else {";
-            parse = addSpaces(parse, cnt);
+            setParserData.push_back(parse + "{");
+        }
+    }
+    else
+    {
+        setParserData.push_back("}");
+    }
+}
+void iteratorBuilders(std::string parse)
+{
+    if (parse[parse.length() - 1] != '>')
+    {
+        parse = parse.substr(2, parse.length() - 2);
+        parse = SpaceDebug(parse);
+        if (parse[0] == 'f')
+        {
+            for (int i = 0; i < parse.length(); i++)
+            {
+                if (parse[i] == ',')
+                {
+                    parse[i] = ';';
+                }
+            }
+            parse = "for" + parse.substr(1, parse.length() - 1) + "{";
+            setParserData.push_back(parse);
+        }
+        else if (parse[0] == 'w')
+        {
+            parse = "while" + parse.substr(1, parse.length() - 1) + "{";
             setParserData.push_back(parse);
         }
     }
     else
     {
-        std::string stf = "}";
-        stf = addSpaces(stf, cnt);
-        setParserData.push_back(stf);
+        setParserData.push_back("}");
     }
 }
-
 int main(int argc, char const *argv[])
-//int main()
+// int main()
 {
     refDataset();
     std::string getSyntax;
     std::ifstream readData(argv[1]);
-    //std::ifstream readData("input.html");
+    // std::ifstream readData("input.html");
     while (getline(readData, getSyntax))
     {
         getSyntax = SpaceDebug(getSyntax);
@@ -339,7 +442,12 @@ int main(int argc, char const *argv[])
         {
             conditionalBuilder(getSyntax);
         }
-        else {
+        else if (getSyntax.substr(0, 2) == "<#" || getSyntax.substr(getSyntax.length() - 2, 2) == "#>")
+        {
+            iteratorBuilders(getSyntax);
+        }
+        else
+        {
             Parser(getSyntax);
         }
     }

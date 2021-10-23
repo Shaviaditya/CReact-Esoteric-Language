@@ -1,2 +1,2 @@
-all: ./Transpiler.cpp
-	g++ Transpiler.cpp -o Transpiler
+all: ./transpiler1.cpp
+	g++ transpiler1.cpp -o transpiler1

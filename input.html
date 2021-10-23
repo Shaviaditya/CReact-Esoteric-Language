@@ -1,11 +1,28 @@
 <htpl>
-  <main> 
-    <in var1,i=0/>
-    <log>Enter an value \n</log>
-    <take var1 //>
-    <# w(i<var1)
-      <log>Fizz\n</log>
-      <%i++%>
-    #>
-  </main>
+    <main>
+        <<stream::(in) v>>
+        <in x,i,j,tmp,a,b/>
+        <log>Enter the number of elements to enter :\n</log>
+        <take x//>
+        <# f(i=0,i<x,i++)
+            <in y/>
+            <take y//>
+            <<v.plus(y)>>
+        #>
+        <log>The original Array is : \n</log>
+        <<v.show()>>
+        <# f(i=0,i<x-1,i++)
+            <# f(j=0,j<x-i-1,j++)
+                <% a = v[j] %>
+                <% b = v[j+1] %> 
+                <?if(a>b)
+                    <% tmp = v[j] %>
+                    <% v[j] = v[j+1] %>
+                    <% v[j+1] = tmp %>
+                ?>
+            #>
+        #>
+        <log>The Sorted Array is \n</log>
+        <<v.show()>>
+    </main>
 </htpl>
